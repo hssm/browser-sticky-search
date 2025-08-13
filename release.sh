@@ -1,1 +1,1 @@
-git archive -o browser_instant_search.zip HEAD
+git archive -o browser_sticky_search.zip HEAD
