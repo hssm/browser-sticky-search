@@ -1,5 +1,5 @@
 # https://github.com/hssm/browser-sticky-search
-# Version 0.1
+# Version 0.2
 from PyQt6 import QtWidgets
 from aqt import *
 from anki.hooks import wrap
