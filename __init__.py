@@ -1,6 +1,7 @@
 # https://github.com/hssm/browser-sticky-search
 # Version 0.2
 from PyQt6 import QtWidgets
+from anki.config import Config
 from aqt import *
 from anki.hooks import wrap
 from aqt.browser import Browser
@@ -9,7 +10,6 @@ from aqt.browser import Browser
 class BrowserStickySearch:
 
     def browser_will_show(self, browser):
-
         stickyEdit = QtWidgets.QComboBox(parent=browser)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(9)
@@ -19,22 +19,40 @@ class BrowserStickySearch:
         stickyEdit.setEditable(True)
         stickyEdit.setInsertPolicy(QtWidgets.QComboBox.InsertPolicy.NoInsert)
         stickyEdit.setObjectName("stickyEdit")
-        stickyEdit.lineEdit().setPlaceholderText("Sticky search (type text, then press Enter")
-        qconnect(stickyEdit.lineEdit().returnPressed, browser.onSearchActivated)
-
 
         # Put ours on top and move existing one down a row
         browser.form.gridLayout.addWidget(stickyEdit, 0, 1, 1, 1)
         browser.form.gridLayout.addWidget(browser.form.searchEdit, 0, 2, 2, 2)
 
+        self.browser = browser
         self.sticky = stickyEdit
 
     def browser_will_search(self, context):
-        context.search = ' '.join([context.search, self.sticky.lineEdit().text()])
-        return None
+        sticky_text = self.sticky.lineEdit().text()
+        if sticky_text:
+            context.search =  ' and '.join(['(' + sticky_text + ')', context.search])
+            self.update_history(sticky_text)
+        print(context.search)
+
+    def update_history(self, text):
+        sh = self.browser.mw.pm.profile.get("stickySearchHistory", [])
+        if text and text in sh:
+            sh.remove(text)
+        sh.insert(0, text)
+        sh = sh[:30]
+        self.sticky.clear()
+        self.sticky.addItems(sh)
+        self.browser.mw.pm.profile["stickySearchHistory"] = sh
 
     def setup_search(self, *kwargs):
+        line_edit = self.sticky.lineEdit()
+        qconnect(line_edit.returnPressed, self.browser.onSearchActivated)
+        self.sticky.setCompleter(None)
+        line_edit.setPlaceholderText("Sticky search (type text, then press Enter")
+        line_edit.setMaxLength(2000000)
+        self.sticky.addItems([""] + self.browser.mw.pm.profile.get("stickySearchHistory", []))
         self.sticky.setFocus()
+
 
 bss = BrowserStickySearch()
 
