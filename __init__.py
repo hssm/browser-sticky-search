@@ -1,7 +1,6 @@
 # https://github.com/hssm/browser-sticky-search
 # Version 1.0
 from PyQt6 import QtWidgets
-from anki.config import Config
 from aqt import *
 from anki.hooks import wrap
 from aqt.browser import Browser
@@ -21,8 +20,8 @@ class BrowserStickySearch:
         stickyEdit.setObjectName("stickyEdit")
 
         # Put ours on top and move existing one down a row
-        browser.form.gridLayout.addWidget(stickyEdit, 0, 1, 1, 1)
-        browser.form.gridLayout.addWidget(browser.form.searchEdit, 0, 2, 2, 2)
+        browser.form.gridLayout.addWidget(stickyEdit, 1, 1, 1, 1)
+        browser.form.gridLayout.addWidget(browser.form.searchEdit, 0, 1, 1, 1)
 
         self.browser = browser
         self.sticky = stickyEdit
@@ -48,10 +47,9 @@ class BrowserStickySearch:
         line_edit = self.sticky.lineEdit()
         qconnect(line_edit.returnPressed, self.browser.onSearchActivated)
         self.sticky.setCompleter(None)
-        line_edit.setPlaceholderText("Sticky search (type text, then press Enter")
+        line_edit.setPlaceholderText("Sticky search")
         line_edit.setMaxLength(2000000)
         self.sticky.addItems([""] + self.browser.mw.pm.profile.get("stickySearchHistory", []))
-        self.sticky.setFocus()
 
 
 bss = BrowserStickySearch()
